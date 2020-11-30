@@ -1,7 +1,8 @@
-var express = require('express');
-var bodPrJson = require ('body-parser');
-var app = express();
+import express from 'express';
+import bodPrJson from 'body-parser';
+import firebase from './firebase.js';
 
+var app = express();
 app.use(bodPrJson.urlencoded({ extended: false }));
 app.use(bodPrJson.json());
 
@@ -73,21 +74,25 @@ app.post('/ejer1', function (req, res) {
     res.send(respuesta);
 })
 
+/// validacion usuario
 app.post('/ejer2', function (req, res) {
-    if(typeof req.body.usuario == "string" && typeof req.body.contraseña == "string" ){
-        var resultado = iniciarSesion(req.body.usuario, req.body.contraseña);
-        respuesta = {
-            codigo: "200",
-            description: "inicio exitosa",
-            valor: resultado
-        }
+    if(req.body.codigo != '' && req.body.contraseña != '' ){
+        firebase.auth().signInWithEmailAndPassword(req.body.usuario, req.body.contraseña).then((answer) => {
+            res.status(200).send(answer)
+        })
+        .catch((error=>{
+            res.status(406).send(error);
+            console.log(error)
+        }));
+
     } else {
         respuesta ={
             codigo: "406",
             description: "datos invalidos"
         }
+        res.send(respuesta);
     }
-    res.send(respuesta);
+
 })
 
 app.listen(3000, function(){
